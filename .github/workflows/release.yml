@@ -1,0 +1,29 @@
+name: release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test and build (universal)
+        run: |
+          rustup target add x86_64-apple-darwin aarch64-apple-darwin
+          cargo test --release
+          cargo build --release --target aarch64-apple-darwin
+          cargo build --release --target x86_64-apple-darwin
+      - name: Package dmg
+        run: sh packaging/make-dmg.sh "${GITHUB_REF_NAME}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac-dmg
+          path: dist/*.dmg
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" dist/*.dmg --title "pdf-r2l-script-mac ${GITHUB_REF_NAME}" --notes "macOS用dmg(Apple Silicon / Intel 両対応、未署名・未公証)。ライセンスは英日併記(LICENSES.txt) / macOS dmg (universal, unsigned, not notarized). Licenses in English and Japanese."
