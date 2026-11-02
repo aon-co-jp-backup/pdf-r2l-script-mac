@@ -7,7 +7,7 @@ description = "PDFを右綴じ(R2L・見開き右)にするmacOS GUIアプリ"
 
 [dependencies]
 lopdf = "0.42"
-eframe = "0.29"
+eframe = { version = "0.37", default-features = false, features = ["accesskit", "default_fonts", "glow", "wayland", "x11"] }
 rfd = "0.15"
 
 [profile.release]

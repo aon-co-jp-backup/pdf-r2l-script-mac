@@ -30,7 +30,7 @@ fn setup_fonts(ctx: &egui::Context) {
     ] {
         if let Ok(bytes) = std::fs::read(p) {
             let mut f = egui::FontDefinitions::default();
-            f.font_data.insert("jp".into(), egui::FontData::from_owned(bytes));
+            f.font_data.insert("jp".into(), std::sync::Arc::new(egui::FontData::from_owned(bytes)));
             for fam in [egui::FontFamily::Proportional, egui::FontFamily::Monospace] {
                 f.families.entry(fam).or_default().push("jp".into());
             }
@@ -66,9 +66,10 @@ impl App {
 }
 
 impl eframe::App for App {
-    fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
+    fn ui(&mut self, ui: &mut egui::Ui, _: &mut eframe::Frame) {
+        let ctx = &ui.ctx().clone();
         ctx.input(|i| {
-            if let Some(f) = i.raw.dropped_files.first().and_then(|f| f.path.clone()) {
+            if let Some(f) = i.raw.dropped_files.first().map(|f| f.path().to_path_buf()) {
                 self.src = Some(f);
             }
         });
@@ -80,7 +81,7 @@ impl eframe::App for App {
                     ui.add(egui::Label::new(egui::RichText::new(LICENSES.trim_start_matches('\u{feff}')).monospace().size(11.0)).wrap_mode(egui::TextWrapMode::Extend));
                 });
             });
-        egui::CentralPanel::default().show(ctx, |ui| {
+        egui::CentralPanel::default().show(ui, |ui| {
             ui.heading("PDF 右綴じ変換");
             ui.add_space(8.0);
             ui.label("PDFファイルをドラッグ&ドロップ、または選択:");
