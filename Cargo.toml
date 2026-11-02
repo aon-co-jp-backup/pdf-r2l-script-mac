@@ -6,7 +6,7 @@ license = "MIT"
 description = "PDFを右綴じ(R2L・見開き右)にするmacOS GUIアプリ"
 
 [dependencies]
-lopdf = "0.34"
+lopdf = "0.42"
 eframe = "0.29"
 rfd = "0.15"
 
